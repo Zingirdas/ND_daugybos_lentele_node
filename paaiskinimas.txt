@@ -1,0 +1,121 @@
+Paaiskinimas kas ka atlieka:
+
+1. Importuojame modulius
+
+    import * as http from 'http';
+    import * as url from 'url';
+
+    http modulis: Importuojamas iš Node.js ir naudojamas HTTP serveriui kurti.
+    url modulis: Taip pat importuojamas iš Node.js ir naudojamas URL analizavimui bei užklausos parametrų paėmimui.
+
+2.  Serverio sukūrimas
+
+    const server = http.createServer((req, res) => {
+        const queryObject = url.parse(req.url as string, true).query;
+        const percentage = parseInt(queryObject.percentage as string) || 50; 
+
+    http.createServer: Sukuriamas naujas HTTP serveris. Funkcija, kuri nurodoma kaip argumentas, bus vykdoma kiekvieną kartą, kai serveris gaus užklausą.
+    req: Užklausos objektas, kuris turi informaciją apie kliento pateiktą užklausą.
+    res: Atsakymo objektas, kuris naudojamas atsakymui grąžinti klientui.
+    url.parse(req.url as string, true).query: Naudojama url modulio funkcija, kad būtų išskaidytas užklausos URL ir gauti URL parametrai kaip objektas.
+    parseInt(queryObject.percentage as string) || 50: Perskaito URL parametru nurodytą procentą. Jei procentas nenurodytas arba neteisingas, naudojama numatytoji reikšmė 50.
+
+3.  Lentelės generavimo funkcija
+
+    const generateTable = (percentage: number): string => {
+        const gridSize = 10;
+        const totalCells = gridSize * gridSize;
+        const cellsToHide = Math.floor(totalCells * (percentage / 100));
+
+    gridSize: Nustato lentelės dydį (10x10).
+    totalCells: Bendras lentelės langelių skaičius.
+    cellsToHide: Apskaičiuoja, kiek langelių turi būti paslėpta pagal nurodytą procentą.
+
+4.  Lentelės antraštės generavimas
+
+        let tableHTML = '<table border="1" cellpadding="5" cellspacing="0">';
+        tableHTML += '<tr><th></th>'; 
+        for (let i = 1; i <= gridSize; i++) {
+            tableHTML += `<th>${i}</th>`; 
+        }
+        tableHTML += '</tr>';
+
+    tableHTML: Kintamasis, kuris laikys HTML lentelės struktūrą.
+    Antraštės eilutė: Pridedama pirmoji eilutė, kurioje yra tuščias langelis (kairėje) ir skaičiai nuo 1 iki 10 (antraštės stulpeliai).
+
+5.  Langelių paslėpimas
+
+        const hiddenCells: { [key: string]: boolean } = {};
+        let hiddenCount = 0;
+        while (hiddenCount < cellsToHide) {
+            const row = Math.floor(Math.random() * gridSize) + 1;
+            const col = Math.floor(Math.random() * gridSize) + 1;
+            const key = `${row}-${col}`;
+            if (!hiddenCells[key]) { 
+                hiddenCells[key] = true;
+                hiddenCount++;
+            }
+        }
+    hiddenCells: Objektas, kuris saugos paslėptus langelius (naudojant langelio koordinates kaip raktą).
+    hiddenCount: Kintamasis, kuris skaičiuoja jau paslėptus langelius.
+    while ciklas: Atsitiktinai parenka langelio koordinates ir žymi langelius kaip paslėptus tol, kol bus paslėptas nurodytas kiekis langelių.
+
+6.  Lentelės kūrimas su paslėptais langeliais
+
+            for (let i = 1; i <= gridSize; i++) {
+                tableHTML += '<tr>';
+                tableHTML += `<td>${i}</td>`; 
+                for (let j = 1; j <= gridSize; j++) {
+                    const key = `${i}-${j}`;
+                    const cellValue = hiddenCells[key] ? '' : i * j;
+                    tableHTML += `<td>${cellValue}</td>`;
+                }
+                tableHTML += '</tr>';
+            }
+
+            tableHTML += '</table>';
+
+            return tableHTML;
+        };
+
+    Eilučių kūrimas: Prideda eilutes nuo 1 iki 10, pirmoje stulpelio vietoje įterpia eilutės numerį.
+    Langelių kūrimas: Patikrina, ar langelis turi būti paslėptas. Jei taip, įterpiama tuščia vieta, kitaip įterpiamas daugybos rezultatas.
+
+7.  Atsakymo formavimas ir siuntimas
+
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+
+            res.write("<!DOCTYPE html>");
+            res.write("<html>");
+            res.write("<head>");
+            res.write("<title>Daugybos Lentelė</title>");
+            res.write("</head>");
+            res.write("<body>");
+            res.write(`
+                <h1>Daugybos Lentelė su ${percentage}% Paslėptų Skaičių</h1>
+                <form method="get" action="/">
+                    <label for="percentage">Pasirinkite procentą:</label>
+                    <select name="percentage" id="percentage">
+                        <option value="10" ${percentage === 10 ? 'selected' : ''}>10%</option>
+                        <option value="30" ${percentage === 30 ? 'selected' : ''}>30%</option>
+                        <option value="50" ${percentage === 50 ? 'selected' : ''}>50%</option>
+                    </select>
+                    <button type="submit">Generuoti</button>
+                </form>
+            `);
+            res.write(generateTable(percentage));
+            res.write("</body>");
+            res.write("</html>");
+            res.end();
+        });
+
+    Atsakymo antraštė: Nustato turinio tipą kaip HTML su UTF-8 kodavimu.
+    HTML dokumentas: Pradedamas HTML dokumentas, kuris apima DOCTYPE, head ir body sekcijas.
+    Procentų pasirinkimo forma: HTML forma, leidžianti vartotojui pasirinkti procentą paslėptų langelių.
+    generateTable(percentage): Įterpia sugeneruotą lentelę į HTML dokumentą.
+    Atsakymo užbaigimas: res.end() siunčia atsakymą klientui.
+
+8.  Serverio paleidimas
+
+        server.listen(3000, 'localhost') 
+

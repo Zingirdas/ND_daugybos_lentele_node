@@ -1,0 +1,19 @@
+{
+  "name": "nd_daugybos_lentele_nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx nodemon"
+  },
+  "keywords": [],
+  "author": "Zingirdas <zingirdas@googlemail.com> (https://github.com/Zingirdas)",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12"
+  }
+}
